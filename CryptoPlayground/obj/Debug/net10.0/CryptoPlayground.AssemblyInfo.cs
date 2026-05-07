@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CryptoPlayground")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+54796fc8feb96746e9f135b97bd3b151df5092ce")]
 [assembly: System.Reflection.AssemblyProductAttribute("CryptoPlayground")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CryptoPlayground")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
