@@ -3,23 +3,26 @@ using System.Text.Json;
 
 public class Program
 {
+    private static readonly HttpClient _httpClient = new HttpClient();
+
     public static async Task Main()
     {
         string token = await PostLocalLogin("user");
         await GetLocalProfile(token);
-        //await GetLocalUser(token);
-        //await GetLocalAdmin(token);
+        await GetLocalUser(token);
+        await GetLocalAdmin(token);
         
         token = await PostLocalLogin("admin");
         await GetLocalProfile(token);
-        //await GetLocalUser(token);
-        //await GetLocalAdmin(token);
+        await GetLocalUser(token);
+        await GetLocalAdmin(token);
 
-        //await GetLocalSecret(token);
-        //await LocalGetHello();
-        //await LocalPostEcho();
-        //await GetPost();
-        //await CreatePost();
+        await GetLocalSecret(token);
+        await LocalGetHello();
+        await LocalPostEcho();
+
+        await GetPost();
+        await CreatePost();
         //await GetUser();
         //await PostLogin();
     }
@@ -30,8 +33,7 @@ public class Program
         Console.WriteLine($"Making GET request (no auth) to {noAuthGetUrl} in order to get a Post");
         try
         {
-            using HttpClient client = new HttpClient();
-            HttpResponseMessage noAuthResponse = await client.GetAsync(noAuthGetUrl);
+            HttpResponseMessage noAuthResponse = await _httpClient.GetAsync(noAuthGetUrl);
             noAuthResponse.EnsureSuccessStatusCode();
             string jsonResponse = await noAuthResponse.Content.ReadAsStringAsync();
             Post? post = JsonSerializer.Deserialize<Post>(jsonResponse);
@@ -44,13 +46,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"GET Request (no auth) to {noAuthGetUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from GET Request (no auth) to {noAuthGetUrl}: {ex.Message}");
+            Console.WriteLine($"Error from GET Request (no auth) to {noAuthGetUrl}: {ex.Message}");
         }
     }
 
@@ -60,11 +58,10 @@ public class Program
         Console.WriteLine($"Making POST request (no auth) to {noAuthPostUrl} in order to create a new Post");
         try
         {
-            using HttpClient client = new HttpClient();
             Post postData = new Post { title = "Hello API", body = "Testing POST", userId = 1 };
             string jsonPayload = JsonSerializer.Serialize(postData);
             StringContent content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
-            HttpResponseMessage postResponse = await client.PostAsync(noAuthPostUrl, content);
+            HttpResponseMessage postResponse = await _httpClient.PostAsync(noAuthPostUrl, content);
             postResponse.EnsureSuccessStatusCode();
             string jsonResponse = await postResponse.Content.ReadAsStringAsync();
 
@@ -73,13 +70,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"POST Request (no auth) to {noAuthPostUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from POST Request (no auth) to {noAuthPostUrl}: {ex.Message}");
+            Console.WriteLine($"Error from POST Request (no auth) to {noAuthPostUrl}: {ex.Message}");
         }
     }
 
@@ -90,9 +83,8 @@ public class Program
         Console.WriteLine($"Making GET request (with auth) to {authGetUrl} in order to get a User");
         try
         {
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("x-api-key", reqResXApiKey);
-            HttpResponseMessage authResponse = await client.GetAsync(authGetUrl);
+            _httpClient.DefaultRequestHeaders.Add("x-api-key", reqResXApiKey);
+            HttpResponseMessage authResponse = await _httpClient.GetAsync(authGetUrl);
             authResponse.EnsureSuccessStatusCode();
             string jsonResponse = await authResponse.Content.ReadAsStringAsync();
             Console.WriteLine($"GET Response (with auth) [json]:");
@@ -100,13 +92,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"GET Request (with auth) to {authGetUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from GET Request (with auth) to {authGetUrl}: {ex.Message}");
+            Console.WriteLine($"Error from GET Request (with auth) to {authGetUrl}: {ex.Message}");
         }
     }
 
@@ -121,15 +109,14 @@ public class Program
             string loginJson = JsonSerializer.Serialize(loginPayload);
             var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
 
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("x-api-key", reqResXApiKey);
+            _httpClient.DefaultRequestHeaders.Add("x-api-key", reqResXApiKey);
 
-            foreach(var header in client.DefaultRequestHeaders)
+            foreach(var header in _httpClient.DefaultRequestHeaders)
             {
                 Console.WriteLine($"Header: {header.Key} = {string.Join(", ", header.Value)}");
             }
 
-            HttpResponseMessage loginResponse = await client.PostAsync(authLoginUrl, loginContent);
+            HttpResponseMessage loginResponse = await _httpClient.PostAsync(authLoginUrl, loginContent);
             loginResponse.EnsureSuccessStatusCode();
             string jsonResponse = await loginResponse.Content.ReadAsStringAsync();
             Console.WriteLine($"POST Response (with auth) [json]:");
@@ -137,13 +124,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"POST Request (with auth) to {authLoginUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from POST Request (with auth) to {authLoginUrl}: {ex.Message}");
+            Console.WriteLine($"Error from POST Request (with auth) to {authLoginUrl}: {ex.Message}");
         }
     }
 
@@ -153,8 +136,7 @@ public class Program
         Console.WriteLine($"Making GET request to {localHelloUrl} in order to test hello endpoint");
         try
         {
-            using HttpClient client = new HttpClient();
-            HttpResponseMessage helloResponse = await client.GetAsync(localHelloUrl);
+            HttpResponseMessage helloResponse = await _httpClient.GetAsync(localHelloUrl);
             helloResponse.EnsureSuccessStatusCode();
             string jsonResponse = await helloResponse.Content.ReadAsStringAsync();
 
@@ -163,13 +145,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Local GET Request to {localHelloUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from local GET Request to {localHelloUrl}: {ex.Message}");
+            Console.WriteLine($"Error from local GET Request to {localHelloUrl}: {ex.Message}");
         }
     }
 
@@ -179,12 +157,11 @@ public class Program
         Console.WriteLine($"Making POST request to {localEchoUrl} in order to test echo endpoint");
         try
         {
-            using HttpClient client = new HttpClient();
             var messagePayload = new { Content = "Hello, Echo!" };
             string messageJson = JsonSerializer.Serialize(messagePayload);
             var content = new StringContent(messageJson, Encoding.UTF8, "application/json");
 
-            HttpResponseMessage echoResponse = await client.PostAsync(localEchoUrl, content);
+            HttpResponseMessage echoResponse = await _httpClient.PostAsync(localEchoUrl, content);
             echoResponse.EnsureSuccessStatusCode();
             string jsonResponse = await echoResponse.Content.ReadAsStringAsync();
 
@@ -193,13 +170,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Local POST Request to {localEchoUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from local POST Request to {localEchoUrl}: {ex.Message}");
+            Console.WriteLine($"Error from local POST Request to {localEchoUrl}: {ex.Message}");
         }
     }
 
@@ -209,12 +182,11 @@ public class Program
         Console.WriteLine($"Making POST request to {localLoginUrl} in order to test login endpoint");
         try
         {
-            using HttpClient client = new HttpClient();
             var loginPayload = new { Username = username, Password = "password" };
             string loginJson = JsonSerializer.Serialize(loginPayload);
             var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
 
-            var loginResponse = await client.PostAsync(localLoginUrl, loginContent);
+            var loginResponse = await _httpClient.PostAsync(localLoginUrl, loginContent);
             var loginResult = await loginResponse.Content.ReadAsStringAsync();
             var tokenObj = JsonSerializer.Deserialize<Dictionary<string, string>>(loginResult);
             if(tokenObj == null || !tokenObj.ContainsKey("token"))
@@ -226,14 +198,9 @@ public class Program
 
             return token;
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Local POST Request to {localLoginUrl} failed: {ex.Message}");
-            throw;
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from local POST Request to {localLoginUrl}: {ex.Message}");
+            Console.WriteLine($"Error from local POST Request to {localLoginUrl}: {ex.Message}");
             throw;
         }
     }
@@ -244,9 +211,8 @@ public class Program
         Console.WriteLine($"Making GET request to {localSecretUrl} in order to test protected secret endpoint");
         try
         {
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var secretResponse = await client.GetAsync(localSecretUrl);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var secretResponse = await _httpClient.GetAsync(localSecretUrl);
             string jsonResponse = await secretResponse.Content.ReadAsStringAsync();
 
             Console.WriteLine($"Local GET Response [json]:");
@@ -254,13 +220,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Local GET Request to {localSecretUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from local GET Request to {localSecretUrl}: {ex.Message}");
+            Console.WriteLine($"Error from local GET Request to {localSecretUrl}: {ex.Message}");
         }
     }
 
@@ -270,9 +232,8 @@ public class Program
         Console.WriteLine($"Making GET request to {localAdminUrl} in order to test protected admin endpoint");
         try
         {
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var adminResponse = await client.GetAsync(localAdminUrl);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var adminResponse = await _httpClient.GetAsync(localAdminUrl);
             string jsonResponse = await adminResponse.Content.ReadAsStringAsync();
 
             Console.WriteLine($"Local GET Response [json]:");
@@ -282,13 +243,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Local GET Request to {localAdminUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from local GET Request to {localAdminUrl}: {ex.Message}");
+            Console.WriteLine($"Error from local GET Request to {localAdminUrl}: {ex.Message}");
         }
     }
 
@@ -298,9 +255,8 @@ public class Program
         Console.WriteLine($"Making GET request to {localUserUrl} in order to test protected user endpoint");
         try
         {
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var userResponse = await client.GetAsync(localUserUrl);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var userResponse = await _httpClient.GetAsync(localUserUrl);
             string jsonResponse = await userResponse.Content.ReadAsStringAsync();
 
             Console.WriteLine($"Local GET Response [json]:");
@@ -309,13 +265,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Local GET Request to {localUserUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from local GET Request to {localUserUrl}: {ex.Message}");
+            Console.WriteLine($"Error from local GET Request to {localUserUrl}: {ex.Message}");
         }
     }
 
@@ -325,9 +277,8 @@ public class Program
         Console.WriteLine($"Making GET request to {localProfileUrl} in order to test protected profile endpoint");
         try
         {
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var profileResponse = await client.GetAsync(localProfileUrl);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var profileResponse = await _httpClient.GetAsync(localProfileUrl);
             string jsonResponse = await profileResponse.Content.ReadAsStringAsync();
 
             Console.WriteLine($"Local GET Response [json]:");
@@ -336,13 +287,9 @@ public class Program
             Console.WriteLine();
             Console.WriteLine();
         }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Local GET Request to {localProfileUrl} failed: {ex.Message}");
-        }
         catch(Exception ex)
         {
-            Console.WriteLine($"Other error from local GET Request to {localProfileUrl}: {ex.Message}");
+            Console.WriteLine($"Error from local GET Request to {localProfileUrl}: {ex.Message}");
         }
     }
 }
