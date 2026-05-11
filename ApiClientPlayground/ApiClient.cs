@@ -167,6 +167,7 @@ public class ApiClient
             StringContent content = CreateJsonContent(loginPayload);
 
             var loginResponse = await _httpClient.PostAsync(localLoginUrl, content);
+            loginResponse.EnsureSuccessStatusCode();
             var loginResult = await loginResponse.Content.ReadAsStringAsync();
             var tokenObj = JsonSerializer.Deserialize<Dictionary<string, string>>(loginResult);
             if(tokenObj == null || !tokenObj.ContainsKey("token"))
@@ -185,7 +186,7 @@ public class ApiClient
         }
     }
 
-    public async Task GetLocalSecret(string token)
+    public async Task<string> GetLocalSecret(string token)
     {
         string localSecretUrl = "http://localhost:5159/secret";
         Console.WriteLine($"Making GET request to {localSecretUrl} in order to test protected secret endpoint");
@@ -199,14 +200,17 @@ public class ApiClient
             Console.WriteLine(jsonResponse);
             Console.WriteLine();
             Console.WriteLine();
+
+            return jsonResponse;
         }
         catch(Exception ex)
         {
             Console.WriteLine($"Error from local GET Request to {localSecretUrl}: {ex.Message}");
+            throw;
         }
     }
 
-    public async Task GetLocalAdmin(string token)
+    public async Task<string> GetLocalAdmin(string token)
     {
         string localAdminUrl = "http://localhost:5159/admin";
         Console.WriteLine($"Making GET request to {localAdminUrl} in order to test protected admin endpoint");
@@ -222,14 +226,17 @@ public class ApiClient
             Console.WriteLine(jsonResponse);
             Console.WriteLine();
             Console.WriteLine();
+
+            return jsonResponse;
         }
         catch(Exception ex)
         {
             Console.WriteLine($"Error from local GET Request to {localAdminUrl}: {ex.Message}");
+            throw;
         }
     }
 
-    public async Task GetLocalUser(string token)
+    public async Task<string> GetLocalUser(string token)
     {
         string localUserUrl = "http://localhost:5159/user";
         Console.WriteLine($"Making GET request to {localUserUrl} in order to test protected user endpoint");
@@ -244,14 +251,17 @@ public class ApiClient
             Console.WriteLine(jsonResponse);
             Console.WriteLine();
             Console.WriteLine();
+
+            return jsonResponse;
         }
         catch(Exception ex)
         {
             Console.WriteLine($"Error from local GET Request to {localUserUrl}: {ex.Message}");
+            throw;
         }
     }
 
-    public async Task GetLocalProfile(string token)
+    public async Task<string> GetLocalProfile(string token)
     {
         string localProfileUrl = "http://localhost:5159/profile";
         Console.WriteLine($"Making GET request to {localProfileUrl} in order to test protected profile endpoint");
@@ -266,10 +276,13 @@ public class ApiClient
             Console.WriteLine(jsonResponse);
             Console.WriteLine();
             Console.WriteLine();
+
+            return jsonResponse;
         }
         catch(Exception ex)
         {
             Console.WriteLine($"Error from local GET Request to {localProfileUrl}: {ex.Message}");
+            throw;
         }
     }
 

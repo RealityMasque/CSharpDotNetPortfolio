@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalApiSandbox", "LocalApi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalApiSandboxTests", "LocalApiSandboxTests\LocalApiSandboxTests.csproj", "{5C3CFF8D-B267-41A6-949F-104FE683D59D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiClientPlaygroundTests", "ApiClientPlaygroundTests\ApiClientPlaygroundTests.csproj", "{8580911B-83FC-4F74-94BB-30864248B1DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{5C3CFF8D-B267-41A6-949F-104FE683D59D}.Release|x64.Build.0 = Release|Any CPU
 		{5C3CFF8D-B267-41A6-949F-104FE683D59D}.Release|x86.ActiveCfg = Release|Any CPU
 		{5C3CFF8D-B267-41A6-949F-104FE683D59D}.Release|x86.Build.0 = Release|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Debug|x64.Build.0 = Debug|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Debug|x86.Build.0 = Debug|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Release|x64.ActiveCfg = Release|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Release|x64.Build.0 = Release|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Release|x86.ActiveCfg = Release|Any CPU
+		{8580911B-83FC-4F74-94BB-30864248B1DE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
