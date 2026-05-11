@@ -59,8 +59,8 @@ public class Program
         try
         {
             Post postData = new Post { title = "Hello API", body = "Testing POST", userId = 1 };
-            string jsonPayload = JsonSerializer.Serialize(postData);
-            StringContent content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+            StringContent content = CreateJsonContent(postData);
+
             HttpResponseMessage postResponse = await _httpClient.PostAsync(noAuthPostUrl, content);
             postResponse.EnsureSuccessStatusCode();
             string jsonResponse = await postResponse.Content.ReadAsStringAsync();
@@ -105,9 +105,8 @@ public class Program
         Console.WriteLine($"Making POST request (no auth) to {authLoginUrl} in order to login");
         try
         {
-            var loginPayload = new { email = "eve.holt@reqres.in", password = "cityslicka" };
-            string loginJson = JsonSerializer.Serialize(loginPayload);
-            var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
+            var loginData = new { email = "eve.holt@reqres.in", password = "cityslicka" };
+            StringContent content = CreateJsonContent(loginData);
 
             _httpClient.DefaultRequestHeaders.Add("x-api-key", reqResXApiKey);
 
@@ -116,7 +115,7 @@ public class Program
                 Console.WriteLine($"Header: {header.Key} = {string.Join(", ", header.Value)}");
             }
 
-            HttpResponseMessage loginResponse = await _httpClient.PostAsync(authLoginUrl, loginContent);
+            HttpResponseMessage loginResponse = await _httpClient.PostAsync(authLoginUrl, content);
             loginResponse.EnsureSuccessStatusCode();
             string jsonResponse = await loginResponse.Content.ReadAsStringAsync();
             Console.WriteLine($"POST Response (with auth) [json]:");
@@ -158,8 +157,7 @@ public class Program
         try
         {
             var messagePayload = new { Content = "Hello, Echo!" };
-            string messageJson = JsonSerializer.Serialize(messagePayload);
-            var content = new StringContent(messageJson, Encoding.UTF8, "application/json");
+            StringContent content = CreateJsonContent(messagePayload);
 
             HttpResponseMessage echoResponse = await _httpClient.PostAsync(localEchoUrl, content);
             echoResponse.EnsureSuccessStatusCode();
@@ -183,10 +181,9 @@ public class Program
         try
         {
             var loginPayload = new { Username = username, Password = "password" };
-            string loginJson = JsonSerializer.Serialize(loginPayload);
-            var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
+            StringContent content = CreateJsonContent(loginPayload);
 
-            var loginResponse = await _httpClient.PostAsync(localLoginUrl, loginContent);
+            var loginResponse = await _httpClient.PostAsync(localLoginUrl, content);
             var loginResult = await loginResponse.Content.ReadAsStringAsync();
             var tokenObj = JsonSerializer.Deserialize<Dictionary<string, string>>(loginResult);
             if(tokenObj == null || !tokenObj.ContainsKey("token"))
@@ -291,6 +288,12 @@ public class Program
         {
             Console.WriteLine($"Error from local GET Request to {localProfileUrl}: {ex.Message}");
         }
+    }
+
+    private static StringContent CreateJsonContent(object data)
+    {
+        string jsonPayload = JsonSerializer.Serialize(data);
+        return new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
     }
 }
 
