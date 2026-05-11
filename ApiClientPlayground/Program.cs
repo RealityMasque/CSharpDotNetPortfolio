@@ -5,8 +5,17 @@ public class Program
 {
     public static async Task Main()
     {
-        string token = await PostLocalLogin();
-        await GetLocalSecret(token);
+        string token = await PostLocalLogin("user");
+        await GetLocalProfile(token);
+        //await GetLocalUser(token);
+        //await GetLocalAdmin(token);
+        
+        token = await PostLocalLogin("admin");
+        await GetLocalProfile(token);
+        //await GetLocalUser(token);
+        //await GetLocalAdmin(token);
+
+        //await GetLocalSecret(token);
         //await LocalGetHello();
         //await LocalPostEcho();
         //await GetPost();
@@ -194,14 +203,14 @@ public class Program
         }
     }
 
-    public static async Task<string> PostLocalLogin()
+    public static async Task<string> PostLocalLogin(string username = "user")
     {
         string localLoginUrl = "http://localhost:5159/login";
         Console.WriteLine($"Making POST request to {localLoginUrl} in order to test login endpoint");
         try
         {
             using HttpClient client = new HttpClient();
-            var loginPayload = new { Username = "user", Password = "password" };
+            var loginPayload = new { Username = username, Password = "password" };
             string loginJson = JsonSerializer.Serialize(loginPayload);
             var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
 
@@ -252,6 +261,88 @@ public class Program
         catch(Exception ex)
         {
             Console.WriteLine($"Other error from local GET Request to {localSecretUrl}: {ex.Message}");
+        }
+    }
+
+    public static async Task GetLocalAdmin(string token)
+    {
+        string localAdminUrl = "http://localhost:5159/admin";
+        Console.WriteLine($"Making GET request to {localAdminUrl} in order to test protected admin endpoint");
+        try
+        {
+            using HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var adminResponse = await client.GetAsync(localAdminUrl);
+            string jsonResponse = await adminResponse.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"Local GET Response [json]:");
+            Console.WriteLine(adminResponse.StatusCode.ToString());
+            Console.WriteLine($"{(int)adminResponse.StatusCode} {adminResponse.StatusCode}");
+            Console.WriteLine(jsonResponse);
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Local GET Request to {localAdminUrl} failed: {ex.Message}");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Other error from local GET Request to {localAdminUrl}: {ex.Message}");
+        }
+    }
+
+    public static async Task GetLocalUser(string token)
+    {
+        string localUserUrl = "http://localhost:5159/user";
+        Console.WriteLine($"Making GET request to {localUserUrl} in order to test protected user endpoint");
+        try
+        {
+            using HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var userResponse = await client.GetAsync(localUserUrl);
+            string jsonResponse = await userResponse.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"Local GET Response [json]:");
+            Console.WriteLine($"{(int)userResponse.StatusCode} {userResponse.StatusCode}");
+            Console.WriteLine(jsonResponse);
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Local GET Request to {localUserUrl} failed: {ex.Message}");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Other error from local GET Request to {localUserUrl}: {ex.Message}");
+        }
+    }
+
+    public static async Task GetLocalProfile(string token)
+    {
+        string localProfileUrl = "http://localhost:5159/profile";
+        Console.WriteLine($"Making GET request to {localProfileUrl} in order to test protected profile endpoint");
+        try
+        {
+            using HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var profileResponse = await client.GetAsync(localProfileUrl);
+            string jsonResponse = await profileResponse.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"Local GET Response [json]:");
+            Console.WriteLine($"{(int)profileResponse.StatusCode} {profileResponse.StatusCode}");
+            Console.WriteLine(jsonResponse);
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Local GET Request to {localProfileUrl} failed: {ex.Message}");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Other error from local GET Request to {localProfileUrl}: {ex.Message}");
         }
     }
 }

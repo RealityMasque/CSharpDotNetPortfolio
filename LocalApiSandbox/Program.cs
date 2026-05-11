@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 public class Program
 {
@@ -36,25 +36,47 @@ public class Program
             }
         );
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
+        });
 
         var app = builder.Build();
 
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.MapGet("/hello", () => "Hello, World!");
+        app.MapPost("/echo", (Message msg) => msg);
+
         app.MapPost("/login", (UserLogin login) =>
             {
-                if (login.Username == "user" && login.Password == "password")
+                var roles = new List<string>();
+                if (login.Username == "admin")
+                {
+                    roles.Add("Admin");
+                }
+                else
+                {
+                    roles.Add("User");
+                }
+
+                // Add roles as claims
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, login.Username)
+                };
+                claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+                if (login.Password == "password")
                 {
                     var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
                     var tokenKey = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
 
                     var tokenDescriptor = new SecurityTokenDescriptor
                     {
-                        Subject = new System.Security.Claims.ClaimsIdentity(new[] {
-                            new System.Security.Claims.Claim("username", login.Username)
-                        }),
+                        Subject = new ClaimsIdentity(claims),
                         Expires = DateTime.UtcNow.AddMinutes(jwtSettings.ExpirationMinutes),
                         Issuer = jwtSettings.Issuer,
                         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
@@ -73,8 +95,18 @@ public class Program
         app.MapGet("/secret", () => "This is a protected resource")
             .RequireAuthorization();
 
-        app.MapGet("/hello", () => "Hello, World!");
-        app.MapPost("/echo", (Message msg) => msg);
+        app.MapGet("/admin", () => "This is admin only")
+            .RequireAuthorization("AdminOnly");
+
+        app.MapGet("/user", () => "This is user or admin")
+            .RequireAuthorization("UserOrAdmin");
+
+        app.MapGet("/profile", (ClaimsPrincipal user) =>
+        {
+            string username = user.Identity?.Name ?? "Unknown";
+            string role = user.FindFirst(ClaimTypes.Role)?.Value ?? "No role";
+            return $"User: {username}, Role: {role}";
+        }).RequireAuthorization();
 
         app.Run();
     }
