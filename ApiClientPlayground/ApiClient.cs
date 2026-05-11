@@ -112,7 +112,7 @@ public class ApiClient
         }
     }
 
-    public async Task LocalGetHello()
+    public async Task<string> LocalGetHello()
     {
         string localHelloUrl = "http://localhost:5159/hello";
         Console.WriteLine($"Making GET request to {localHelloUrl} in order to test hello endpoint");
@@ -126,20 +126,23 @@ public class ApiClient
             Console.WriteLine(jsonResponse);
             Console.WriteLine();
             Console.WriteLine();
+
+            return jsonResponse;
         }
         catch(Exception ex)
         {
             Console.WriteLine($"Error from local GET Request to {localHelloUrl}: {ex.Message}");
+            throw;
         }
     }
 
-    public async Task LocalPostEcho()
+    public async Task<string> LocalPostEcho(string message)
     {
         string localEchoUrl = "http://localhost:5159/echo";
         Console.WriteLine($"Making POST request to {localEchoUrl} in order to test echo endpoint");
         try
         {
-            var messagePayload = new { Content = "Hello, Echo!" };
+            var messagePayload = new { Content = message };
             StringContent content = CreateJsonContent(messagePayload);
 
             HttpResponseMessage echoResponse = await _httpClient.PostAsync(localEchoUrl, content);
@@ -150,10 +153,13 @@ public class ApiClient
             Console.WriteLine(jsonResponse);
             Console.WriteLine();
             Console.WriteLine();
+
+            return jsonResponse;
         }
         catch(Exception ex)
         {
             Console.WriteLine($"Error from local POST Request to {localEchoUrl}: {ex.Message}");
+            throw;
         }
     }
 

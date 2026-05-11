@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -111,5 +112,31 @@ public class ApiClientPlaygroundTests
         var apiClient = new ApiClient(mockClient);
 
         await Assert.ThrowsAsync<HttpRequestException>(() => apiClient.PostLocalLogin("user"));
+    }
+
+    [Fact]
+    public async Task LocalGetHello_ReturnsHello()
+    {
+        string expected = "Hello, World!";
+        var client = CreateMockHttpClient("/hello", expected);
+        var apiClient = new ApiClient(client);
+
+        var result = await apiClient.LocalGetHello();
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task LocalPostEcho_ReturnsEcho()
+    {
+        string message = "Hello, Echo!";
+        string expected = JsonSerializer.Serialize(new { Content = message });
+
+        var client = CreateMockHttpClient("/echo", expected);
+        var apiClient = new ApiClient(client);
+
+        var result = await apiClient.LocalPostEcho(message);
+
+        Assert.Equal(expected, result);
     }
 }

@@ -17,7 +17,7 @@
 
         await apiClient.GetLocalSecret(token);
         await apiClient.LocalGetHello();
-        await apiClient.LocalPostEcho();
+        await apiClient.LocalPostEcho("Hello, Echo!");
 
         await apiClient.GetPost();
         await apiClient.CreatePost();
