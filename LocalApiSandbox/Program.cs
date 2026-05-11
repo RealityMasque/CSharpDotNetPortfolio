@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.Options;
 
 public class Program
 {
@@ -8,8 +9,13 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        var key = "super_secret_key_123!_must_be_at_least_32_chars_long"; // Keep secret in production env
-        var issuer = "LocalApiSandbox";
+        // Bind JwtSettings from appsettings.json
+        builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+        var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+        if(jwtSettings == null)
+        {
+            throw new Exception("Failed to load JWT settings from configuration.");
+        }
 
         builder.Services.AddAuthentication(options =>
             {
@@ -21,10 +27,10 @@ public class Program
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = issuer,
+                    ValidIssuer = jwtSettings.Issuer,
                     ValidateAudience = false,
                     ValidateLifetime = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
                     ValidateIssuerSigningKey = true
                 };
             }
@@ -42,15 +48,15 @@ public class Program
                 if (login.Username == "user" && login.Password == "password")
                 {
                     var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    var tokenKey = Encoding.UTF8.GetBytes(key);
-                    
+                    var tokenKey = Encoding.UTF8.GetBytes(jwtSettings.SecretKey);
+
                     var tokenDescriptor = new SecurityTokenDescriptor
                     {
                         Subject = new System.Security.Claims.ClaimsIdentity(new[] {
                             new System.Security.Claims.Claim("username", login.Username)
                         }),
-                        Expires = DateTime.UtcNow.AddMinutes(30),
-                        Issuer = issuer,
+                        Expires = DateTime.UtcNow.AddMinutes(jwtSettings.ExpirationMinutes),
+                        Issuer = jwtSettings.Issuer,
                         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
                     };
 
@@ -75,4 +81,11 @@ public class Program
     public record Message(string Content);
 
     public record UserLogin(string Username, string Password);
+
+    public class JwtSettings
+    {
+        public string SecretKey { get; set; } = "";
+        public string Issuer { get; set; } = "";
+        public int ExpirationMinutes { get; set; }
+    }
 }
