@@ -5,8 +5,10 @@ public class Program
 {
     public static async Task Main()
     {
-        await LocalGetHello();
-        await LocalPostEcho();
+        string token = await PostLocalLogin();
+        await GetLocalSecret(token);
+        //await LocalGetHello();
+        //await LocalPostEcho();
         //await GetPost();
         //await CreatePost();
         //await GetUser();
@@ -189,6 +191,67 @@ public class Program
         catch(Exception ex)
         {
             Console.WriteLine($"Other error from local POST Request to {localEchoUrl}: {ex.Message}");
+        }
+    }
+
+    public static async Task<string> PostLocalLogin()
+    {
+        string localLoginUrl = "http://localhost:5159/login";
+        Console.WriteLine($"Making POST request to {localLoginUrl} in order to test login endpoint");
+        try
+        {
+            using HttpClient client = new HttpClient();
+            var loginPayload = new { Username = "user", Password = "password" };
+            string loginJson = JsonSerializer.Serialize(loginPayload);
+            var loginContent = new StringContent(loginJson, Encoding.UTF8, "application/json");
+
+            var loginResponse = await client.PostAsync(localLoginUrl, loginContent);
+            var loginResult = await loginResponse.Content.ReadAsStringAsync();
+            var tokenObj = JsonSerializer.Deserialize<Dictionary<string, string>>(loginResult);
+            if(tokenObj == null || !tokenObj.ContainsKey("token"))
+            {
+                Console.WriteLine($"Login response did not contain a token: {loginResult}");
+                throw new Exception("Token not found in login response");
+            }
+            string token = tokenObj["token"];
+
+            return token;
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Local POST Request to {localLoginUrl} failed: {ex.Message}");
+            throw;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Other error from local POST Request to {localLoginUrl}: {ex.Message}");
+            throw;
+        }
+    }
+
+    public static async Task GetLocalSecret(string token)
+    {
+        string localSecretUrl = "http://localhost:5159/secret";
+        Console.WriteLine($"Making GET request to {localSecretUrl} in order to test protected secret endpoint");
+        try
+        {
+            using HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var secretResponse = await client.GetAsync(localSecretUrl);
+            string jsonResponse = await secretResponse.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"Local GET Response [json]:");
+            Console.WriteLine(jsonResponse);
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Local GET Request to {localSecretUrl} failed: {ex.Message}");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Other error from local GET Request to {localSecretUrl}: {ex.Message}");
         }
     }
 }
