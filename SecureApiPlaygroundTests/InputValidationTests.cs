@@ -13,11 +13,13 @@ public class InputValidationTests : IClassFixture<WebApplicationFactory<Program>
 
     [Theory]
     [InlineData("", "password")]      // Empty username
-    [InlineData("us", "password")]    // Too short
+    [InlineData("us", "password")]    // Username too short
     [InlineData("user", "")]          // Empty password
     [InlineData("user", "123")]       // Password too short
     [InlineData(null, "password")]    // null username
     [InlineData("user", null)]        // null password
+    [InlineData("123456789012345678901234567890123456789012345678901", "password")]        // Username too long
+    [InlineData("user", "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901")]        // Password too long
     public async Task Login_InvalidModel_ShouldReturnBadRequest(string username, string password)
     {
         var payload = new { Username = username, Password = password };
