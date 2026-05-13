@@ -74,6 +74,9 @@ app.MapPost("/login", (UserLogin login) =>
         case "guest":
             roles = new[] { UserRoles.Guest };
             break;
+        case "multi":
+            roles = new[] { UserRoles.Admin, UserRoles.User };
+            break;
     }
     
     if(roles.Length == 0)
