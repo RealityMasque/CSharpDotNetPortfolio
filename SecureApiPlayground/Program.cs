@@ -31,7 +31,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole(UserRoles.Admin));
+    options.AddPolicy("UserOrAdmin", policy => policy.RequireRole(UserRoles.User, UserRoles.Admin));
+    options.AddPolicy("ModeratorOrAdmin", policy => policy.RequireRole(UserRoles.Moderator, UserRoles.Admin));
+    options.AddPolicy("GuestOrUserOrAdmin", policy => policy.RequireRole(UserRoles.Guest, UserRoles.User, UserRoles.Admin));
+});
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -52,9 +58,32 @@ app.UseHttpsRedirection();
 
 app.MapPost("/login", (UserLogin login) =>
 {
-    if(login.Password != "password") return Results.Unauthorized();
+    var roles = new string[] {};
+    
+    switch(login.Username)
+    {
+        case "admin":
+            roles = new[] { UserRoles.Admin };
+            break;
+        case "user":
+            roles = new[] { UserRoles.User };
+            break;
+        case "moderator":
+            roles = new[] { UserRoles.Moderator };
+            break;
+        case "guest":
+            roles = new[] { UserRoles.Guest };
+            break;
+    }
+    
+    if(roles.Length == 0)
+    {
+        return Results.Unauthorized();
+    }
 
     var claims = new List<Claim> { new Claim(ClaimTypes.Name, login.Username) };
+    claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -69,10 +98,23 @@ app.MapPost("/login", (UserLogin login) =>
     return Results.Ok(new { token = jwtToken });
 });
 
+app.MapGet("/admin", () => "Admin only endpoint")
+   .RequireAuthorization("AdminOnly");
+
+app.MapGet("/user", () => "User or Admin endpoint")
+   .RequireAuthorization("UserOrAdmin");
+
+app.MapGet("/moderator", () => "Moderator or Admin endpoint")
+   .RequireAuthorization("ModeratorOrAdmin");
+
+app.MapGet("/guest", () => "Guest or User or Admin endpoint")
+   .RequireAuthorization("GuestOrUserOrAdmin");
+
 app.MapGet("/profile", (ClaimsPrincipal user) =>
 {
     string username = user.Identity?.Name ?? "Unknown";
-    return $"Hello, {username}";
+    string role = UserRoles.GetUserRole(user);
+    return $"User: {username}, Role: {role}";
 }).RequireAuthorization();
 
 app.Run();
