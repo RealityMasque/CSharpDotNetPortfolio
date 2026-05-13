@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using MiniValidation;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -56,28 +57,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/login", (UserLogin login) =>
+app.MapPost("/login", (UserLoginDto login) =>
 {
-    var roles = new string[] {};
-    
-    switch(login.Username)
+    if (!MiniValidator.TryValidate(login, out var errors))
+        return Results.BadRequest(errors);
+
+    var roles = login.Username switch
     {
-        case "admin":
-            roles = new[] { UserRoles.Admin };
-            break;
-        case "user":
-            roles = new[] { UserRoles.User };
-            break;
-        case "moderator":
-            roles = new[] { UserRoles.Moderator };
-            break;
-        case "guest":
-            roles = new[] { UserRoles.Guest };
-            break;
-        case "multi":
-            roles = new[] { UserRoles.Admin, UserRoles.User };
-            break;
-    }
+        "admin" => new[] { UserRoles.Admin },
+        "user" => new[] { UserRoles.User },
+        "moderator" => new[] { UserRoles.Moderator },
+        "guest" => new[] { UserRoles.Guest },
+        "multi" => new[] { UserRoles.Admin, UserRoles.User },
+        _ => Array.Empty<string>()
+    };
     
     if(roles.Length == 0)
     {

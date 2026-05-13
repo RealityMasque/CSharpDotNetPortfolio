@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using Xunit;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace SecureApiPlaygroundTests;
@@ -99,8 +98,6 @@ public class SecureApiPlaygroundTests : IClassFixture<WebApplicationFactory<Prog
     
     [Theory]
     [InlineData("unknownuser")]
-    [InlineData("")]
-    [InlineData(null)]
     public async Task Login_WithInvalidUser_ShouldReturnUnauthorized(string username)
     {
         var loginPayload = new { Username = username ?? "", Password = "password" };
