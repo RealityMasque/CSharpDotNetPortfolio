@@ -1,6 +1,8 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using MiniValidation;
+//using MiniValidation;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -13,6 +15,10 @@ if(jwtSettings == null)
 {
     throw new Exception("Failed to load JWT settings from configuration.");
 }
+
+builder.Services.AddControllers(); // required for FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<UserLoginValidator>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -59,8 +65,13 @@ app.UseHttpsRedirection();
 
 app.MapPost("/login", (UserLoginDto login) =>
 {
-    if (!MiniValidator.TryValidate(login, out var errors))
-        return Results.BadRequest(errors);
+    //if (!MiniValidator.TryValidate(login, out var errors))
+    //    return Results.BadRequest(errors);
+
+    var validator = new UserLoginValidator();
+    var result = validator.Validate(login);
+    if (!result.IsValid)
+        return Results.BadRequest(result.Errors);
 
     var roles = login.Username switch
     {
